@@ -1,11 +1,5 @@
-const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
-const express = require('express');
-const expressLayouts = require('express-ejs-layouts');
-const favicon = require('serve-favicon');
-const logger = require('morgan');
+
 const mongoose = require('mongoose');
-const path = require('path');
 const authenticated = require('./middlewares/authenticated');
 const errors = require('./middlewares/errors');
 const notFound = require('./middlewares/not-found');
@@ -23,24 +17,18 @@ if (process.env.NODE_ENV === 'development') {
   require('dotenv').config()
 }
 
-mongoose.connect(process.env.MONGO_URI);
+mongoose.connect(process.env.MONGO_URI,{useMongoClient:true})
+.then( () => console.log("Connected to db!"));
 
-const app = express();
+const app = require('express')();
+require('./config/express')(app);
 
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
-app.set('layout', 'layouts/main');
-app.use(expressLayouts);
-app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 app.use(session(mongoose.connection));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(authenticated);
 app.use(pathsProvider);
+
 app.use(authentication);
 app.use(rewards);
 app.use(index);
